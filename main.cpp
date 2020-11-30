@@ -3,18 +3,19 @@
 using namespace std;
 #define DEFAULT_PATH ".diary_config_file.conf"
 #ifdef WIN32
-#define FILE_SEP '\\'
+#define FILE_SEP '/'
 #include <io.h>
 #else
 #define FILE_SEP '/'
 #include <unistd.h>
 #endif
-string ReadFile(const char *filePath){
+vector<string> ReadFile(const char *filePath){
     fstream f(filePath,ios::in);
-    string ret;
+    vector<string> ret;
     if(f.is_open()) {
         string s;
-        getline(f, ret, (char) EOF);
+        getline(f, s, (char) '\n');
+        ret.push_back(s);
         f.close();
     }
     return ret;
@@ -40,22 +41,29 @@ void WriteFile(const char *filePath,const string &info){
 int main(int argc,char **argv) {
 
     string Diary_root_path;
-
+    string typora_path;
     if(argc==1){
         auto it = ReadFile(DEFAULT_PATH);
-        if(it.empty()) {
-            cout << "Start to write config file\n";
-            cout << "Diary root path<<";
-            getline(cin, Diary_root_path);
-            WriteFile(DEFAULT_PATH, Diary_root_path);
-        }else{
-            stringstream sin(it);
-            getline(sin,Diary_root_path);
+        string temp;
+        switch (it.size()) {
+            case 0:{
+                cout << "Start to write config file\n";
+                cout << "Diary root path<<";
+                getline(cin, temp);
+                it.push_back(temp);
+            }
+            case 1:{
+                cout << "typora path<<";
+                getline(cin, temp);
+                it.push_back(temp);
+            }
+            default:{
+                break;;
+            }
         }
-    }else if(argc==2){
-        auto it = ReadFile(argv[1]);
-        stringstream sin(it);
-        getline(sin,Diary_root_path);
+        WriteFile(DEFAULT_PATH, it[0]+'\n'+it[1]);
+        Diary_root_path = it[0];
+        typora_path = it[1];
     }
     time_t timep;
     struct tm *p;
@@ -78,9 +86,12 @@ int main(int argc,char **argv) {
     if(IfFileExist(current_monthPath.c_str())){
 
     }else{
+
         string firstInfo="# "+to_string(year)+"年"+to_string(month)+"月"+to_string(day)+"日\n";
         WriteFile(current_monthPath.c_str(),firstInfo);
     }
+    current_monthPath =typora_path +" \""+ current_monthPath+"\"";
+    cout<<current_monthPath<<endl;
     system(current_monthPath.c_str());
     return 0;
 }
