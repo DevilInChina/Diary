@@ -14,8 +14,9 @@ vector<string> ReadFile(const char *filePath){
     vector<string> ret;
     if(f.is_open()) {
         string s;
-        getline(f, s, (char) '\n');
-        ret.push_back(s);
+        while (getline(f, s, (char) '\n')) {
+            ret.push_back(s);
+        }
         f.close();
     }
     return ret;
