@@ -83,12 +83,14 @@ int main(int argc,char **argv) {
 
     }
     current_monthPath+=FILE_SEP;
-    current_monthPath+=to_string(day)+".md";
+    string s_day = to_string(day);
+    if(s_day.size()<2)s_day = "0"+s_day;
+    current_monthPath+=s_day+".md";
     if(IfFileExist(current_monthPath.c_str())){
 
     }else{
 
-        string firstInfo="# "+to_string(year)+"年"+to_string(month)+"月"+to_string(day)+"日\n";
+        string firstInfo="# "+to_string(year)+"年"+to_string(month)+"月"+s_day+"日\n";
         WriteFile(current_monthPath.c_str(),firstInfo);
     }
     current_monthPath =typora_path +" \""+ current_monthPath+"\"";
