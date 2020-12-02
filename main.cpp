@@ -5,7 +5,7 @@ using namespace std;
 #define DEFAULT_PATH ".diary_config_file.conf"
 #ifdef LINUX
 #define FILE_SEP '/'
-
+#define FAIL_SEP '\\'
 #else
 #define FILE_SEP '/'
 #define FAIL_SEP '\\'
@@ -26,10 +26,10 @@ class Diary{
 
 public:
 
-    static void Format(string&s){
+    static void Format(string&s,char originChar = FAIL_SEP,char newChar = FILE_SEP){
         for(auto &c:s){
-            if(c==FAIL_SEP){
-                c=FILE_SEP;
+            if(c==originChar){
+                c=newChar;
             }
         }
     }
@@ -38,9 +38,13 @@ public:
         s = "\""+s+"\"";
     }
 
-    static void Execute(string cmd){
-        Format(cmd);
-        system(cmd.c_str());
+    static int Execute(string cmd,bool format = true,bool showFinalCommand = false){
+        if(format)
+            Format(cmd);
+        if(showFinalCommand) {
+            cout << cmd << endl;
+        }
+        return system(cmd.c_str());
     }
 
     static vector<string> ReadFile(const char *filePath){
@@ -67,8 +71,12 @@ public:
 
     static void WriteFile(const char *filePath,const string &info){
         fstream f(filePath,ios::out);
-        f<<info<<endl;
-        f.close();
+        if(f.is_open()) {
+            f << info << endl;
+            f.close();
+        }else{
+            cout<<"File "<<filePath<<" cannot be write please check if file path is right.\n";
+        }
     }
     static void WriteFile(const char *filePath,const vector<string> &info){
         fstream f(filePath,ios::out);
@@ -78,14 +86,28 @@ public:
         f.close();
     }
 
-
+    static int MK_dir(const string&filePath,bool showFinalCommand = false){
+#ifdef LINUX
+        return Execute("mkdir -p " + filePath);
+#else
+        string cpy=filePath;
+        Format(cpy,FILE_SEP,FAIL_SEP);
+        Format_Add_Quotes(cpy);
+        return Execute(("mkdir "+cpy), false,showFinalCommand);
+#endif
+    }
     void CreateDay(int year,int month,int day){
 
         string path = to_string(year)+FILE_SEP+to_string(month);
         string current_monthPath = Diary_root_path+FILE_SEP+path;
         int c = access(current_monthPath.c_str(),0);
         if(c==-1) {
-            Execute("mkdir -p " + current_monthPath);
+            int k = MK_dir(current_monthPath,false);
+            if(k!=0){
+                cout<<"Error in mkdir\n"<<endl;
+                MK_dir(current_monthPath,true);
+                return;
+            }
         }else{
 
         }
@@ -93,15 +115,16 @@ public:
         string s_day = to_string(day);
         if(s_day.size()<2)s_day = "0"+s_day;
         current_monthPath+=s_day+".md";
-        Format_Add_Quotes(current_monthPath);//// add quotes
 
         if(IfFileExist(current_monthPath.c_str())){
 
         }else{
             string firstInfo="# "+to_string(year)+"年"+to_string(month)+"月"+s_day+"日\n";
+
             WriteFile(current_monthPath.c_str(),firstInfo);
         }
 
+        //Format_Add_Quotes(current_monthPath);//// add quotes
         Format_Add_Quotes(Editor_path);
 
 
@@ -118,7 +141,7 @@ public:
         CreateDay(year,month,day);
     }
 
-    void GetALine(string &temp){
+    static void GetALine(string &temp){
         getline(cin, temp);
     }
 
