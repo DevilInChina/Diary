@@ -1,16 +1,17 @@
 #include <bits/stdc++.h>
+#include <unistd.h>
 
 using namespace std;
 #define DEFAULT_PATH ".diary_config_file.conf"
-#ifdef WIN32
+#ifdef LINUX
 #define FILE_SEP '/'
-#include <io.h>
+
 #else
 #define FILE_SEP '/'
-#include <unistd.h>
+#define FAIL_SEP '\\'
 #endif
 
-
+//C:/Users/DevilInChina/Documents/Dairy/Diary
 class Diary{
 
     string Diary_root_path;
@@ -24,6 +25,24 @@ class Diary{
     }
 
 public:
+
+    static void Format(string&s){
+        for(auto &c:s){
+            if(c==FAIL_SEP){
+                c=FILE_SEP;
+            }
+        }
+    }
+
+    static void Format_Add_Quotes(string &s){
+        s = "\""+s+"\"";
+    }
+
+    static void Execute(string cmd){
+        Format(cmd);
+        system(cmd.c_str());
+    }
+
     static vector<string> ReadFile(const char *filePath){
         fstream f(filePath,ios::in);
         vector<string> ret;
@@ -66,7 +85,7 @@ public:
         string current_monthPath = Diary_root_path+FILE_SEP+path;
         int c = access(current_monthPath.c_str(),0);
         if(c==-1) {
-            system(("mkdir -p " + current_monthPath).c_str());
+            Execute("mkdir -p " + current_monthPath);
         }else{
 
         }
@@ -74,6 +93,8 @@ public:
         string s_day = to_string(day);
         if(s_day.size()<2)s_day = "0"+s_day;
         current_monthPath+=s_day+".md";
+        Format_Add_Quotes(current_monthPath);//// add quotes
+
         if(IfFileExist(current_monthPath.c_str())){
 
         }else{
@@ -81,9 +102,13 @@ public:
             WriteFile(current_monthPath.c_str(),firstInfo);
         }
 
-        current_monthPath =Editor_path +" \""+ current_monthPath+"\"";
-        cout<<current_monthPath<<endl;
-        system(current_monthPath.c_str());
+        Format_Add_Quotes(Editor_path);
+
+
+        current_monthPath =Editor_path +" "+ current_monthPath;
+
+
+        Execute(current_monthPath);
     }
 
     void CreateDay(){
