@@ -13,7 +13,12 @@ using namespace std;
 
 //C:/Users/DevilInChina/Documents/Dairy/Diary
 class Diary{
-
+    enum SITUATION{
+        IDLE,EXIT
+    };
+    enum SINGLE_FILE_OPT{
+        ADD,DEL,MOVE
+    };
     string Diary_root_path;
     string Editor_path;
     struct tm *local_time = nullptr;
@@ -96,42 +101,55 @@ public:
         return Execute(("mkdir "+cpy), false,showFinalCommand);
 #endif
     }
-    void CreateDay(int year,int month,int day){
+    void CreateDay(int year,int month,int day,SINGLE_FILE_OPT opt= ADD) {
 
-        string path = to_string(year)+FILE_SEP+to_string(month);
-        string current_monthPath = Diary_root_path+FILE_SEP+path;
-        int c = access(current_monthPath.c_str(),0);
-        if(c==-1) {
-            int k = MK_dir(current_monthPath,false);
-            if(k!=0){
-                cout<<"Error in mkdir\n"<<endl;
-                MK_dir(current_monthPath,true);
-                return;
+        string path = to_string(year) + FILE_SEP + to_string(month);
+        string current_monthPath = Diary_root_path + FILE_SEP + path;
+        switch (opt) {
+            case ADD: {
+
+                int c = access(current_monthPath.c_str(), 0);
+                if (c == -1) {
+                    int k = MK_dir(current_monthPath, false);
+                    if (k != 0) {
+                        cout << "Error in mkdir\n" << endl;
+                        MK_dir(current_monthPath, true);
+                        return;
+                    }
+                } else {
+
+                }
+                current_monthPath += FILE_SEP;
+                string s_day = to_string(day);
+                if (s_day.size() < 2)s_day = "0" + s_day;
+                current_monthPath += s_day + ".md";
+
+                if (IfFileExist(current_monthPath.c_str())) {
+
+                } else {
+                    string firstInfo = "# " + to_string(year) + "年" + to_string(month) + "月" + s_day + "日\n";
+
+                    WriteFile(current_monthPath.c_str(), firstInfo);
+                }
+
+                //Format_Add_Quotes(current_monthPath);//// add quotes
+                Format_Add_Quotes(Editor_path);
+
+
+                current_monthPath = Editor_path + " " + current_monthPath;
+
+
+                Execute(current_monthPath);
+
             }
-        }else{
+                break;
+            case DEL:{
 
+            }break;
+            case MOVE:{
+
+            }break;
         }
-        current_monthPath+=FILE_SEP;
-        string s_day = to_string(day);
-        if(s_day.size()<2)s_day = "0"+s_day;
-        current_monthPath+=s_day+".md";
-
-        if(IfFileExist(current_monthPath.c_str())){
-
-        }else{
-            string firstInfo="# "+to_string(year)+"年"+to_string(month)+"月"+s_day+"日\n";
-
-            WriteFile(current_monthPath.c_str(),firstInfo);
-        }
-
-        //Format_Add_Quotes(current_monthPath);//// add quotes
-        Format_Add_Quotes(Editor_path);
-
-
-        current_monthPath =Editor_path +" "+ current_monthPath;
-
-
-        Execute(current_monthPath);
     }
 
     void CreateDay(){
@@ -140,9 +158,41 @@ public:
         int day = local_time->tm_mday;
         CreateDay(year,month,day);
     }
+    static bool cmp_no_Cap(const string &a,const string &b){
+        string A(a),B(b);
+        for(auto &i:A){
+            i = isalpha(i)?tolower(i):i;
+        }
+        for(auto &i:B){
+            i = isalpha(i)?tolower(i):i;
+        }
+        return A==B;
+    }
 
-    static void GetALine(string &temp){
+    static vector<string>SepToVector(const string&str){
+        stringstream sin(str);
+        vector<string>ret;
+        string temp;
+        while (sin>>temp){
+            ret.push_back(temp);
+        }
+        return ret;
+    }
+    string buffer;
+    SITUATION GetALine(string &temp){
         getline(cin, temp);
+        if(!temp.empty()) {
+            auto it = SepToVector(temp);
+            if (cmp_no_Cap(it[0], "exit"))return EXIT;
+            buffer = string();
+            if(cmp_no_Cap(it[0],"open")||cmp_no_Cap(it[0],"touch")) {
+
+            }else if(cmp_no_Cap(it[0],"rm") || cmp_no_Cap(it[0],"del") ){
+
+            }
+        }else{
+            return IDLE;
+        }
     }
 
     void Init(){
@@ -172,10 +222,30 @@ public:
 
     void Circulation(){
         CreateDay();
+        SITUATION current = IDLE;
         while (true){
             string cmd;
-            cout<<"<<";
-            GetALine(cmd);
+            switch (current) {
+                case EXIT:{
+                    exit(0);
+                }break;
+                case IDLE:{
+                    cout<<"<<";
+                }break;
+                default:{
+
+                }break;
+            }
+            auto it = GetALine(cmd);
+
+            switch (current) {
+                case IDLE:{
+                    current = it;
+                }break;
+                case EXIT:{
+                    cout<<"Error situation MID-EXIT\n";
+                }break;
+            }
             if(cmd=="exit")break;
         }
     }
