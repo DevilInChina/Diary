@@ -103,7 +103,10 @@ public:
     }
     void CreateDay(int year,int month,int day,SINGLE_FILE_OPT opt= ADD) {
 
-        string path = to_string(year) + FILE_SEP + to_string(month);
+        string s_month = to_string(month);
+        if (s_month.size() < 2)s_month = "0" + s_month;
+
+        string path = to_string(year) + FILE_SEP + s_month;
         string current_monthPath = Diary_root_path + FILE_SEP + path;
         switch (opt) {
             case ADD: {
@@ -123,11 +126,10 @@ public:
                 string s_day = to_string(day);
                 if (s_day.size() < 2)s_day = "0" + s_day;
                 current_monthPath += s_day + ".md";
-
                 if (IfFileExist(current_monthPath.c_str())) {
 
                 } else {
-                    string firstInfo = "# " + to_string(year) + "年" + to_string(month) + "月" + s_day + "日\n";
+                    string firstInfo = "# " + to_string(year) + "年" + s_month + "月" + s_day + "日\n";
 
                     WriteFile(current_monthPath.c_str(), firstInfo);
                 }
