@@ -98,7 +98,7 @@ public:
         string cpy=filePath;
         Format(cpy,FILE_SEP,FAIL_SEP);
         Format_Add_Quotes(cpy);
-        return Execute(("mkdir "+cpy), false,showFinalCommand);
+        return Execute(("mkdir -p "+cpy), false,showFinalCommand);
 #endif
     }
     void CreateDay(int year,int month,int day,SINGLE_FILE_OPT opt= ADD) {
