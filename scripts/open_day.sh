@@ -32,7 +32,7 @@ File=$diary_root/$Year/$Month/$Day.md
 if [ -f $File ] ; then
 	$Editor $File
 else
-	echo "# $Year年$Month月$Day日 星期$weekday" > $File
+	echo "# $Year年$Month月$Day日" > $File
 	#echo >> $File
 	echo "" >> $File
 	$Editor $File
